@@ -1,3 +1,10 @@
+# Integrantes
+
+1. Libertad Gallardo
+2. Vicente Menares
+3. Santiago Villaroel
+4. Duval Ramos
+
 # Gestión Deportiva para Escuela Militar
 
 Proyecto Android corregido para revisar los contenidos de Desarrollo de Apps Móviles de segundo año de Ingeniería Informática en Duoc UC. Conserva Kotlin, Jetpack Compose, Material 3, los perfiles de usuario y administración y la propuesta visual del prototipo adjunto.
