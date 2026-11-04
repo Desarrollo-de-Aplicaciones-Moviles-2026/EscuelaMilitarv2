@@ -2,7 +2,7 @@
 
 1. Libertad Gallardo
 2. Vicente Menares
-3. Santiago Villaroel
+3. Santiago Villarroel
 4. Duval Ramos
 
 # Gestión Deportiva para Escuela Militar
