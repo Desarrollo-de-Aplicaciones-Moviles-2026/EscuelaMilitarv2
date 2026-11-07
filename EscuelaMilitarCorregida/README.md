@@ -49,7 +49,7 @@ La contraseña para las cuentas de prueba es **Clave123**. El inicio de sesión 
 
 También están disponibles c.perez@escuelamilitar.cl, n.vidal@escuelamilitar.cl, t.riquelme@escuelamilitar.cl y a.rojas@escuelamilitar.cl. La cuenta i.fuentes@escuelamilitar.cl está archivada para probar el bloqueo de acceso. Los demás integrantes de compañías son datos ficticios de demostración.
 
-La primera apertura crea 20 espacios (incluidas seis canchas de tenis independientes), las compañías, cinco competencias y dos reservas de muestra coherentes con la fecha de instalación. Las siguientes aperturas conservan los datos de Room. Para comenzar otra demostración desde cero, borra los datos de la app desde los ajustes de Android o desinstálala y vuelve a instalarla. Cerrar sesión conserva la información.
+La primera apertura crea 20 espacios (incluidas seis canchas de tenis independientes), las compañías, cinco competencias y seis reservas de muestra coherentes con la fecha de instalación (cinco de ellas pendientes). Al abrir la app se agregan las solicitudes de muestra que falten, también en instalaciones con datos previos. Las que ya aprobaste o rechazaste no vuelven a aparecer. Las siguientes aperturas conservan los datos de Room. Para comenzar otra demostración desde cero, borra los datos de la app desde los ajustes de Android o desinstálala y vuelve a instalarla. Cerrar sesión conserva la información.
 
 ## Cómo probar un flujo completo
 

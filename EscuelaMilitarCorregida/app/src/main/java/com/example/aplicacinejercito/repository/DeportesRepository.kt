@@ -39,6 +39,15 @@ class DeportesRepository(private val db: AppDatabase, private val clock: Clock =
             dao.insertarReserva(ReservaModel("demo2", "dm", "estadio", fecha, 10, EstadoReserva.PENDIENTE, Fechas.semana(hoy)))
             notificacion(DatosDemostracion.ADMIN_ID, "Solicitud pendiente", "Diego Morales solicitó el Estadio para ${Fechas.etiqueta(fecha)} a las 10:00.", TipoNotificacion.SOLICITUDES)
         }
+        // Solicitudes de muestra que aún no existen. Así también llegan a instalaciones con datos previos;
+        // las ya aprobadas o rechazadas conservan su id y no vuelven a crearse.
+        val hoy = Fechas.hoy(clock)
+        DatosDemostracion.solicitudesPendientes(hoy).filter { dao.reserva(it.id) == null }.forEach { r ->
+            dao.insertarReserva(r)
+            val cancha = DatosDemostracion.canchas.first { it.id == r.canchaId }
+            val titular = DatosDemostracion.usuarios.first { it.id == r.usuarioId }
+            notificacion(DatosDemostracion.ADMIN_ID, "Solicitud pendiente", "${titular.nombre} solicitó ${cancha.nombre} para ${Fechas.etiqueta(r.fecha)} a las ${"%02d:00".format(r.horaInicio)}.", TipoNotificacion.SOLICITUDES)
+        }
     }
 
     fun observarDatos(): Flow<DatosApp> {
@@ -90,8 +99,9 @@ class DeportesRepository(private val db: AppDatabase, private val clock: Clock =
         promoverEspera(reserva.canchaId, reserva.fecha, reserva.horaInicio)
     }
 
-    suspend fun resolverSolicitud(adminId: String, reservaId: String, aprobar: Boolean) = db.withTransaction {
+    suspend fun resolverSolicitud(adminId: String, reservaId: String, aprobar: Boolean, motivo: String? = null) = db.withTransaction {
         administrador(adminId)
+        exigir(motivo == null || (motivo.isNotBlank() && motivo.length <= 200), "El motivo del rechazo no es válido.")
         val reserva = dao.reserva(reservaId) ?: throw ReglaNegocioException("No se encontró la solicitud.")
         exigir(reserva.estado == EstadoReserva.PENDIENTE, "La solicitud ya fue procesada.")
         exigir(!aprobar || Fechas.futuro(reserva.fecha, reserva.horaInicio, clock), "La solicitud está vencida; puedes rechazarla.")
@@ -103,7 +113,7 @@ class DeportesRepository(private val db: AppDatabase, private val clock: Clock =
             exigir(!ReglasReserva.bloqueadoPorEvento(reserva.canchaId, reserva.fecha, reserva.horaInicio, dao.eventos(), dao.eventoCanchas()), "El bloque está ocupado por un evento.")
         }
         dao.guardarReserva(reserva.copy(estado = if (aprobar) EstadoReserva.CONFIRMADA else EstadoReserva.RECHAZADA))
-        notificacion(reserva.usuarioId, if (aprobar) "Reserva confirmada" else "Solicitud rechazada", if (aprobar) "Tu solicitud fue aprobada." else "Tu solicitud fue rechazada. El token se liberó.", TipoNotificacion.SOLICITUDES)
+        notificacion(reserva.usuarioId, if (aprobar) "Reserva confirmada" else "Solicitud rechazada", if (aprobar) "Tu solicitud fue aprobada." else if (motivo == null) "Tu solicitud fue rechazada. El token se liberó." else "Tu solicitud fue rechazada. Motivo: ${motivo.trim()}. El token se liberó.", TipoNotificacion.SOLICITUDES)
         if (!aprobar) promoverEspera(reserva.canchaId, reserva.fecha, reserva.horaInicio)
     }
 

@@ -64,6 +64,16 @@ object DatosDemostracion {
         EventoModel("e4", "Torneo de rugby seven", "Rugby", hoy.plusDays(13).toString(), 10, 14, 6, 7),
         EventoModel("e5", "Corrida aniversario 10K", "Atletismo", hoy.plusDays(14).toString(), 8, 12, 20, 1)
     )
+    // Solicitudes pendientes de muestra: cumplen las reglas (anticipación, jornada, eventos y tokens).
+    fun solicitudesPendientes(hoy: LocalDate): List<ReservaModel> {
+        val semana = Fechas.semana(hoy)
+        return listOf(
+            ReservaModel("demo3", "cp", "mc1", hoy.plusDays(1).toString(), 17, EstadoReserva.PENDIENTE, semana),
+            ReservaModel("demo4", "nv", "rugby2", hoy.plusDays(2).toString(), 15, EstadoReserva.PENDIENTE, semana),
+            ReservaModel("demo5", "tr", "basquet", hoy.plusDays(2).toString(), 9, EstadoReserva.PENDIENTE, semana),
+            ReservaModel("demo6", "ar", "baby", hoy.plusDays(3).toString(), 11, EstadoReserva.PENDIENTE, semana)
+        )
+    }
     val eventoCanchas = listOf(
         EventoCanchaModel("e1", "futbol1"), EventoCanchaModel("e2", "estadio"), EventoCanchaModel("e2", "pista"),
         EventoCanchaModel("e3", "basquet"), EventoCanchaModel("e4", "rugby2"), EventoCanchaModel("e5", "pista")
