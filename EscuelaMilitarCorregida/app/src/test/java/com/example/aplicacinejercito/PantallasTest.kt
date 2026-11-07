@@ -136,4 +136,53 @@ class PantallasTest {
         compose.onNodeWithText("Pista Atlética").assertDoesNotExist()
         compose.onNodeWithText("Sala de Musculación").assertExists()
     }
+    @Test fun menuDeRechazoOfreceCuatroMotivosYCampoParaOtro() {
+        compose.setContent { AplicacinEjercitoTheme { Surface {
+            var formulario by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(RechazoFormulario()) }
+            ContenidoRechazo(2, formulario, false, { cambio -> formulario = cambio(formulario) }, {}, {})
+        } } }
+        compose.onNodeWithText("Rechazar 2 solicitudes").assertExists()
+        compose.onNodeWithText("Instalación en mantenimiento").assertIsSelected()
+        compose.onNodeWithText("Horario reservado para un evento institucional").assertExists()
+        compose.onNodeWithText("Cupo de la instalación completo").assertExists()
+        compose.onNodeWithText("Escribe el motivo").assertDoesNotExist()
+        captura("rechazo")
+        compose.onNodeWithText("Otro").performClick()
+        compose.onNodeWithText("Escribe el motivo").assertExists()
+        captura("rechazo-otro")
+    }
+    @Test fun solicitudesSigueElDisenoDeLaImagen() {
+        val semana = Fechas.semana(Fechas.hoy())
+        val dia = Fechas.hoy().plusDays(3).toString()
+        val solicitudes = datos.copy(reservas = listOf(
+            ReservaModel("s1", "dm", "estadio", dia, 10, EstadoReserva.PENDIENTE, semana),
+            ReservaModel("s2", "vs", "tenis", dia, 17, EstadoReserva.PENDIENTE, semana),
+            ReservaModel("s3", "ml", "tenis", dia, 9, EstadoReserva.PENDIENTE, semana),
+            ReservaModel("s4", "vs", "estadio", dia, 15, EstadoReserva.CONFIRMADA, semana)))
+        compose.setContent { AplicacinEjercitoTheme { Surface {
+            var filtros by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(SolicitudesUiState(seleccionadas = setOf("s1", "s2"))) }
+            SolicitudesScreen(solicitudes, filtros, false, { cambio -> filtros = cambio(filtros) }, {}, {}, {}, {}, {})
+        } } }
+        compose.onNodeWithText("Por revisar (3)").assertExists()
+        compose.onNodeWithText("Procesadas (1)").assertExists()
+        compose.onNodeWithText("Tenientes (1)").assertExists()
+        compose.onNodeWithText("Cabos (1)").assertExists()
+        compose.onNodeWithText("Cadetes (1)").assertExists()
+        compose.onNodeWithText("2 seleccionadas").assertExists()
+        compose.onNodeWithText("Aprobar").assertIsEnabled()
+        captura("solicitudes")
+        compose.onNodeWithText("Estadio").performClick()
+        compose.onNodeWithText("1 seleccionadas").assertExists()
+        compose.onNodeWithText("Estadio").performClick()
+        compose.onNodeWithText("2 seleccionadas").assertExists()
+        compose.onNodeWithText("Seleccionar todas").performClick()
+        compose.onNodeWithText("Quitar selección").assertExists()
+        compose.onNodeWithText("3 seleccionadas").assertExists()
+        compose.onNodeWithText("Quitar selección").performClick()
+        compose.onNodeWithText("Aprobar").assertIsNotEnabled()
+        compose.onNodeWithText("Procesadas (1)").performClick()
+        compose.onNodeWithText("Aprobar").assertDoesNotExist()
+        compose.onNodeWithText("Seleccionar todas").assertDoesNotExist()
+        captura("solicitudes-procesadas")
+    }
 }

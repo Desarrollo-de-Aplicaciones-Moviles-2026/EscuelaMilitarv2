@@ -134,7 +134,11 @@ fun AppNavigation(estado: AppUiState, ancho: WindowWidthSizeClass, factory: AppV
                             accion, cadete::actualizarEquipo, { cadete.crearEquipo(usuario.id) })
                     }
                 } else {
-                    composable(Rutas.SOLICITUDES) { SolicitudesScreen(estado.datos, verReserva) }
+                    composable(Rutas.SOLICITUDES) {
+                        SolicitudesScreen(estado.datos, adminUi.solicitudes, accion.cargando, admin::cambiarSolicitudes,
+                            { admin.aprobarSeleccionadas(usuario.id) }, admin::abrirRechazo, admin::cambiarRechazo,
+                            admin::cerrarRechazo, { admin.confirmarRechazo(usuario.id) })
+                    }
                     composable(Rutas.INSTALACIONES) {
                         InstalacionesScreen(estado.datos, { admin.prepararCancha(null); nav.navigate(Rutas.EDITAR_CANCHA) }, { nav.navigate(Rutas.ficha(it)) })
                     }

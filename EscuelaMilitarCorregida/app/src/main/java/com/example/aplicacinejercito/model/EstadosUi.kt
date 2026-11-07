@@ -107,8 +107,25 @@ data class AdminUiState(
     val guardado: Boolean = false,
     val politicas: List<PoliticaModel> = emptyList(),
     val reprogramacion: ReprogramacionFormulario = ReprogramacionFormulario(),
-    val reporte: ReporteFiltros = ReporteFiltros()
+    val reporte: ReporteFiltros = ReporteFiltros(),
+    val solicitudes: SolicitudesUiState = SolicitudesUiState()
 )
+
+data class SolicitudesUiState(
+    val procesadas: Boolean = false,
+    val grado: String = "Todos",
+    val seleccionadas: Set<String> = emptySet(),
+    val rechazo: RechazoFormulario? = null
+)
+
+enum class MotivoRechazo(val etiqueta: String) {
+    MANTENIMIENTO("Instalación en mantenimiento"),
+    EVENTO("Horario reservado para un evento institucional"),
+    CUPO("Cupo de la instalación completo"),
+    OTRO("Otro")
+}
+
+data class RechazoFormulario(val motivo: MotivoRechazo = MotivoRechazo.MANTENIMIENTO, val otro: String = "", val error: String? = null)
 
 data class ReprogramacionErrores(val fecha: String? = null, val hora: String? = null)
 data class ReprogramacionFormulario(val reservaId: String = "", val fecha: String = "", val hora: String = "9", val errores: ReprogramacionErrores = ReprogramacionErrores())

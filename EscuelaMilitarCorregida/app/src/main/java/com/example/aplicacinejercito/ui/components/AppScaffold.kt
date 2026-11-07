@@ -46,7 +46,7 @@ private fun tituloPantalla(ruta: String, admin: Boolean) = when (ruta) {
     Rutas.EQUIPO -> "Inscribir un equipo"
     Rutas.NOTIFICACIONES -> "Notificaciones"
     Rutas.AYUDA -> "Ayuda y normas de uso"
-    Rutas.SOLICITUDES -> "Solicitudes pendientes"
+    Rutas.SOLICITUDES -> "Solicitudes"
     Rutas.INSTALACIONES -> "Instalaciones"
     Rutas.FICHA -> "Ficha de la instalación"
     Rutas.EDITAR_CANCHA -> "Datos y horarios"
@@ -96,6 +96,7 @@ fun AppScaffold(nav: NavHostController, estado: AppUiState, usarRail: Boolean, c
                 TopAppBar(title = {
                     Column {
                         if (actual == Rutas.INICIO) Text(if (admin) Fechas.etiqueta(Fechas.hoy().toString()) else "${usuario.grado.etiqueta} · ${Fechas.etiqueta(Fechas.hoy().toString())}", style = MaterialTheme.typography.labelMedium)
+                        if (actual == Rutas.SOLICITUDES) Text("${SolicitudesModel.contarPendientes(estado.datos)} por revisar", style = MaterialTheme.typography.labelMedium)
                         Text(if (actual == Rutas.INICIO && !admin) "Hola, $nombre" else tituloPantalla(actual, admin),
                             style = if (actual == Rutas.INICIO && !admin) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
                             maxLines = 2, overflow = TextOverflow.Ellipsis)

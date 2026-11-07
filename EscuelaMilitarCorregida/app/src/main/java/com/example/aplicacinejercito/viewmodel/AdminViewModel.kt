@@ -68,6 +68,43 @@ class AdminViewModel(private val repository: DeportesRepository) : ViewModel() {
         }
     }
     fun cambiarReporte(cambio: (ReporteFiltros) -> ReporteFiltros) { _estado.update { it.copy(reporte = cambio(it.reporte)) } }
+    fun cambiarSolicitudes(cambio: (SolicitudesUiState) -> SolicitudesUiState) { _estado.update { it.copy(solicitudes = cambio(it.solicitudes)) } }
+    fun aprobarSeleccionadas(adminId: String) = resolverLote(adminId, aprobar = true, motivo = null)
+    fun abrirRechazo() {
+        if (_estado.value.solicitudes.seleccionadas.isEmpty()) return
+        _estado.update { it.copy(solicitudes = it.solicitudes.copy(rechazo = RechazoFormulario())) }
+    }
+    fun cambiarRechazo(cambio: (RechazoFormulario) -> RechazoFormulario) {
+        _estado.update { it.copy(solicitudes = it.solicitudes.copy(rechazo = it.solicitudes.rechazo?.let { f -> cambio(f).copy(error = null) })) }
+    }
+    fun cerrarRechazo() { _estado.update { it.copy(solicitudes = it.solicitudes.copy(rechazo = null)) } }
+    fun confirmarRechazo(adminId: String) {
+        val f = _estado.value.solicitudes.rechazo ?: return
+        if (_estado.value.accion.cargando) return
+        val error = SolicitudesModel.errorRechazo(f)
+        if (error != null) {
+            _estado.update { it.copy(solicitudes = it.solicitudes.copy(rechazo = f.copy(error = error))) }
+            return
+        }
+        _estado.update { it.copy(solicitudes = it.solicitudes.copy(rechazo = null)) }
+        resolverLote(adminId, aprobar = false, motivo = SolicitudesModel.textoMotivo(f))
+    }
+    private fun resolverLote(adminId: String, aprobar: Boolean, motivo: String?) {
+        val ids = _estado.value.solicitudes.seleccionadas.toList()
+        if (ids.isEmpty()) return
+        ejecutar {
+            var procesadas = 0
+            var fallidas = 0
+            ids.forEach { id ->
+                try { repository.resolverSolicitud(adminId, id, aprobar, motivo); procesadas++ }
+                catch (e: CancellationException) { throw e }
+                catch (e: Exception) { fallidas++ }
+            }
+            _estado.update { it.copy(solicitudes = it.solicitudes.copy(seleccionadas = emptySet())) }
+            if (fallidas == 0) "Solicitudes procesadas: $procesadas."
+            else "Procesadas: $procesadas. No se pudieron procesar: $fallidas."
+        }
+    }
     fun archivarCancha(adminId: String, id: String, archivar: Boolean) = ejecutar { repository.archivarCancha(adminId, id, archivar); if (archivar) "Instalación archivada." else "Instalación restaurada." }
     fun resolver(adminId: String, reservaId: String, aprobar: Boolean) = ejecutar {
         repository.resolverSolicitud(adminId, reservaId, aprobar)

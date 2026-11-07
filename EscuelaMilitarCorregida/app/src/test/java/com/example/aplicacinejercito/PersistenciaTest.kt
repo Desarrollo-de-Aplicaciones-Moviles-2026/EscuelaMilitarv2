@@ -9,6 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.aplicacinejercito.data.*
 import com.example.aplicacinejercito.model.*
 import com.example.aplicacinejercito.repository.*
+import com.example.aplicacinejercito.viewmodel.AdminViewModel
 import java.time.Clock
 import java.time.Instant
 import java.util.UUID
@@ -89,6 +90,68 @@ class PersistenciaTest {
             repo.resolverSolicitud("admin", id, false)
             assertEquals(EstadoReserva.RECHAZADA, db.dao().reserva(id)?.estado)
             assertEquals(0, ReglasReserva.tokensUsados(db.dao().reservas(), "ml", Fechas.hoy(clock)))
+        }
+    }
+    @Test fun demostracionTieneCincoSolicitudesPendientesQueCumplenLasReglas() = runBlocking {
+        nueva().usar { db ->
+            val repo = DeportesRepository(db, clock); repo.inicializar()
+            val reservas = db.dao().reservas()
+            val pendientes = reservas.filter { it.estado == EstadoReserva.PENDIENTE }
+            assertEquals(5, pendientes.size)
+            val eventos = db.dao().eventos(); val relaciones = db.dao().eventoCanchas()
+            pendientes.forEach { r ->
+                val usuario = db.dao().usuario(r.usuarioId)!!
+                val cancha = db.dao().cancha(r.canchaId)!!
+                val politica = db.dao().politica(usuario.grado)!!
+                val f = ReservaFormulario(r.canchaId, fecha = r.fecha, horaInicio = r.horaInicio, aceptaNormas = true)
+                assertNull(r.id, ReglasReserva.errorSolicitud(usuario, cancha, politica, f, reservas.filter { it.id != r.id }, eventos, relaciones, clock))
+            }
+        }
+    }
+    @Test fun rechazoConMotivoLoIncluyeEnLaNotificacionYLiberaElToken() = runBlocking {
+        nueva().usar { db ->
+            val repo = DeportesRepository(db, clock); repo.inicializar()
+            val id = repo.solicitarReserva("ml", f())
+            repo.resolverSolicitud("admin", id, false, "Instalación en mantenimiento")
+            assertEquals(EstadoReserva.RECHAZADA, db.dao().reserva(id)?.estado)
+            assertEquals(0, ReglasReserva.tokensUsados(db.dao().reservas(), "ml", Fechas.hoy(clock)))
+            val aviso = repo.observarDatos().first().notificaciones.single { it.usuarioId == "ml" && it.titulo == "Solicitud rechazada" }
+            assertTrue(aviso.detalle.contains("Motivo: Instalación en mantenimiento"))
+        }
+    }
+    @Test fun motivoVacioOMuyLargoNoSeAcepta() = runBlocking {
+        nueva().usar { db ->
+            val repo = DeportesRepository(db, clock); repo.inicializar()
+            val id = repo.solicitarReserva("ml", f())
+            assertTrue(runCatching { repo.resolverSolicitud("admin", id, false, " ") }.isFailure)
+            assertTrue(runCatching { repo.resolverSolicitud("admin", id, false, "x".repeat(201)) }.isFailure)
+            assertEquals(EstadoReserva.PENDIENTE, db.dao().reserva(id)?.estado)
+        }
+    }
+    @Test fun adminPideMotivoAntesDeRechazarEnLote() = runBlocking {
+        nueva().usar { db ->
+            val repo = DeportesRepository(db, clock); repo.inicializar()
+            val vm = AdminViewModel(repo)
+            vm.abrirRechazo()
+            assertNull(vm.estado.value.solicitudes.rechazo)
+            vm.cambiarSolicitudes { it.copy(seleccionadas = setOf("demo2")) }
+            vm.abrirRechazo()
+            vm.cambiarRechazo { it.copy(motivo = MotivoRechazo.OTRO, otro = " ") }
+            vm.confirmarRechazo("admin")
+            assertEquals("Escribe el motivo del rechazo.", vm.estado.value.solicitudes.rechazo?.error)
+            assertEquals(EstadoReserva.PENDIENTE, db.dao().reserva("demo2")?.estado)
+        }
+    }
+    @Test fun solicitudesDeMuestraNoSeDuplicanNiReaparecenTrasResolverse() = runBlocking {
+        nueva().usar { db ->
+            val repo = DeportesRepository(db, clock); repo.inicializar()
+            assertEquals(5, db.dao().reservas().count { it.estado == EstadoReserva.PENDIENTE })
+            repo.inicializar()
+            assertEquals(5, db.dao().reservas().count { it.estado == EstadoReserva.PENDIENTE })
+            repo.resolverSolicitud("admin", "demo3", true)
+            repo.inicializar()
+            assertEquals(4, db.dao().reservas().count { it.estado == EstadoReserva.PENDIENTE })
+            assertEquals(EstadoReserva.CONFIRMADA, db.dao().reserva("demo3")?.estado)
         }
     }
     @Test fun cancelarConfirmadaPromueveListaDeEsperaEnOrden() = runBlocking {

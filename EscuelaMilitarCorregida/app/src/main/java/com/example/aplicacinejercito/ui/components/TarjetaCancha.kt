@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import com.example.aplicacinejercito.model.*
 
 @Composable
-fun EtiquetaEstado(texto: String) {
+fun EtiquetaEstado(texto: String, conPunto: Boolean = false) {
     val destino = when (texto) {
         "Disponible", "Confirmada", "Activa", "Inscripciones abiertas" -> MaterialTheme.colorScheme.tertiaryContainer
         "Rechazada", "Cancelada", "Ocupada", "No disponible" -> MaterialTheme.colorScheme.errorContainer
@@ -20,7 +20,7 @@ fun EtiquetaEstado(texto: String) {
     }
     val color by animateColorAsState(destino, label = "Color del estado")
     Surface(color = color, shape = MaterialTheme.shapes.small) {
-        Text(texto, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium,
+        Text(if (conPunto) "• $texto" else texto, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), style = MaterialTheme.typography.labelMedium,
             color = when (texto) {
                 "Disponible", "Confirmada", "Activa", "Inscripciones abiertas" -> MaterialTheme.colorScheme.onTertiaryContainer
                 "Rechazada", "Cancelada", "Ocupada", "No disponible" -> MaterialTheme.colorScheme.onErrorContainer

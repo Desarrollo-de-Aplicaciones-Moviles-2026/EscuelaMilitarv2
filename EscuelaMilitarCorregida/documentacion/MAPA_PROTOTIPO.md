@@ -26,7 +26,7 @@ Cada pantalla principal tiene su archivo Kotlin. Se comparten las tarjetas, camp
 ## Decisiones actuales
 
 - Reservas de una hora, sin cantidad de participantes ni motivo.
-- Aprobación o rechazo individual. Rechazar no requiere explicación escrita.
+- Aprobación individual o en lote. Al rechazar desde Solicitudes se elige un motivo (u "Otro" con texto); desde el detalle de la reserva el rechazo es directo.
 - Cancelación de reservas futuras confirmadas por titular o administración.
 - Horarios configurables por días y por bloques de una hora, con jornada predeterminada 08:00–18:00.
 - Las seis canchas de tenis se reservan de forma independiente.
